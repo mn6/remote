@@ -3,3 +3,5 @@ discord:
   bot_id: "?"
   bot_token: "?"
   prefix: "!"
+express:
+  port: 9898

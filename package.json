@@ -9,6 +9,10 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "eris": "^0.14.0",
+    "jimp": "^0.16.1",
+    "redis": "^3.0.2",
+    "robotjs": "^0.6.0",
     "yaml": "^1.10.0"
   }
 }

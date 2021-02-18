@@ -8,8 +8,15 @@ const robot = require("robotjs")
 const Jimp = require('jimp')
 
 // Redis init
+const { promisify } = require("util")
 const redis = require("redis")
 const rclient = redis.createClient()
+const funcs = [ 'get', 'set', 'hget', 'hset', 'hgetall' ]
+const r = {}
+funcs.forEach(func => {
+  r[func] = promisify(rclient[func]).bind(rclient)
+})
+
 rclient.on("error", function(error) {
   console.error(error)
 })
@@ -17,17 +24,6 @@ rclient.on("error", function(error) {
 // Load config
 const configFile = fs.readFileSync('./config.yml', 'utf8')
 const config = YAML.parse(configFile)
-const routines = {
-  'weathercheck': [
-    'move:1550,641',
-    'click:left',
-    'move:1,1',
-    'type:weather in atlanta',
-    'press:enter',
-    'delay:1000',
-    'screenshot:1050,536,661,365'
-  ]
-}
 
 const click = button => {
   robot.mouseToggle('down', button)
@@ -65,8 +61,8 @@ const processSteps = async (bot, msg, steps) => {
         }
 
         let jimg = new Jimp(screenshot.width, screenshot.height)
-        // jimg.bitmap.data = screenshot.image
 
+        // Fix screenshot colors
         let red, green, blue
         screenshot.image.forEach((byte, i) => {
           switch (i % 4) {
@@ -88,7 +84,7 @@ const processSteps = async (bot, msg, steps) => {
         jimg.getBuffer(Jimp.MIME_PNG, (_, result)=>{
           bot.createMessage(msg.channel.id, '', {
             file: result,
-            name: 'screenie.jpg'
+            name: 'screenie.png'
           })
           next()
         })
@@ -103,6 +99,9 @@ const processSteps = async (bot, msg, steps) => {
   }
 }
 
+// Internal express API for react front-end (saving/pulling routines)
+
+
 // Connect to Discord
 const bot = new Eris(config.discord.bot_token)
 bot.on("ready", () => {
@@ -114,16 +113,17 @@ bot.on("ready", () => {
   }
 })
 
-bot.on("messageCreate", (msg) => {
+bot.on("messageCreate", async (msg) => {
   if (msg.author.id !== config.discord.admin_id) return
 
   if (msg.content.startsWith(config.discord.prefix)) {
     let split = msg.content.split(config.discord.prefix)
     if (split[1]) {
       let command = split[1]
+      let routines = await r.hgetall('remote:routines')
       if (routines[command]) {
         bot.createMessage(msg.channel.id, 'Running macro: ' + command)
-        processSteps(bot, msg, routines[command])
+        processSteps(bot, msg, JSON.parse(routines[command]))
       }
     }
   }
