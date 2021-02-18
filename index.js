@@ -7,6 +7,13 @@ const Eris = require("eris")
 const robot = require("robotjs")
 const Jimp = require('jimp')
 
+// Redis init
+const redis = require("redis")
+const rclient = redis.createClient()
+rclient.on("error", function(error) {
+  console.error(error)
+})
+
 // Load config
 const configFile = fs.readFileSync('./config.yml', 'utf8')
 const config = YAML.parse(configFile)
