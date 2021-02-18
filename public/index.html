@@ -1,0 +1,60 @@
+<html>
+  <head>
+    <title>Remote Config</title>
+    <style>
+      @import url('https://fonts.googleapis.com/css2?family=Open+Sans&display=swap');
+      body {
+        background-color:#0c0127;
+        font-family: 'Open Sans', sans-serif;
+      }
+      .routine {
+        display: inline-block;
+        border-radius: 5px;
+        margin: 10px;
+        width: fit-content;
+        color: white;
+        padding: 5px 31px;
+        background-color: #1b0256;
+        cursor: pointer;
+      }
+      .routine:hover {
+        background-color: #20006b;
+      }
+      .routine p {
+        border-radius: 5px;
+        background-color: #12023a;
+        padding: 5px;
+        text-align: center;
+      }
+      h1 {
+        text-align: center;
+        color: white;
+        padding: 20px 0;
+        border-bottom: 1px solid #ffffff26;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Routines</h1>
+    <div class="routineList">
+    </div>
+  </body>
+  <script>
+    let template = `<div class="routine" routine-command="%command%" role="button" tabindex="0" aria-label="Edit routine: %command%"><p>%command%</p></div>`
+    
+    const http = new XMLHttpRequest()
+    http.open("GET", 'http://localhost:9898/routines')
+    http.send()
+
+    http.onreadystatechange = function () {
+      if (this.readyState === 4 && this.status === 200) {
+        let res = JSON.parse(http.responseText)
+        Object.entries(res).forEach(pair => {
+          let temp = template.replace(/%command%/g, pair[0])
+          document.getElementsByClassName('routineList')[0].appendChild(document.createRange().createContextualFragment(temp))
+        })
+      }
+    }
+
+  </script>
+</html>

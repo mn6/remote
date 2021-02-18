@@ -112,13 +112,18 @@ app.get('/routines', async (req, res) => {
   let routines = await r.hgetall('remote:routines')
   res.json(routines)
 })
-app.post('/routine', async (req, res) => {
+app.put('/routine', async (req, res) => {
   if (req.body && req.body['name'] && req.body['update']) {
     r.hset('remote:routines', req.body['name'], req.body['update'])
     res.json({ 'ok': true })
   }
 })
-
+app.post('/routine', async (req, res) => {
+  if (req.body && req.body['name'] && req.body['routine']) {
+    r.hset('remote:routines', req.body['name'], req.body['routine'])
+    res.json({ 'ok': true })
+  }
+})
 app.listen(config.express.port, () => {
   console.log(`Internal API listening at http://localhost:${config.express.port}`)
 })
