@@ -6,6 +6,10 @@ const fs = require('fs')
 const Eris = require("eris")
 const robot = require("robotjs")
 const Jimp = require('jimp')
+const express = require('express')
+const app = express()
+const cors = require('cors')
+const bodyParser = require('body-parser')
 
 // Redis init
 const { promisify } = require("util")
@@ -100,7 +104,24 @@ const processSteps = async (bot, msg, steps) => {
 }
 
 // Internal express API for react front-end (saving/pulling routines)
+app.use(cors())
+app.use(bodyParser.json())
+app.use(bodyParser.urlencoded({ extended: true }))
 
+app.get('/routines', async (req, res) => {
+  let routines = await r.hgetall('remote:routines')
+  res.json(routines)
+})
+app.post('/routine', async (req, res) => {
+  if (req.body && req.body['name'] && req.body['update']) {
+    r.hset('remote:routines', req.body['name'], req.body['update'])
+    res.json({ 'ok': true })
+  }
+})
+
+app.listen(config.express.port, () => {
+  console.log(`Internal API listening at http://localhost:${config.express.port}`)
+})
 
 // Connect to Discord
 const bot = new Eris(config.discord.bot_token)
