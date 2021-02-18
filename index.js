@@ -11,8 +11,14 @@ const Jimp = require('jimp')
 const configFile = fs.readFileSync('./config.yml', 'utf8')
 const config = YAML.parse(configFile)
 const routines = {
-  'test': [
-    
+  'weathercheck': [
+    'move:1550,641',
+    'click:left',
+    'move:1,1',
+    'type:weather in atlanta',
+    'press:enter',
+    'delay:1000',
+    'screenshot:1050,536,661,365'
   ]
 }
 
