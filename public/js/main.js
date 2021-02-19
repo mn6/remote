@@ -61,11 +61,6 @@ const setup = () => {
 
           $(document).off('click').on('click', '.del', e => {
             $(e.target).closest('.li').remove()
-          }).off('keydown').on('keydown', (e) => {
-            if (e.keyCode === 13 || e.keyCode === 32) {
-              e.preventDefault()
-              e.currentTarget.click()
-            }
           })
 
           $('.save').off('click').on('click', (e) => {
@@ -125,7 +120,7 @@ const setup = () => {
 
           $('.plus').off('click').on('click', e => {
             if ($('.li select')[0]) return
-            let addSel = `<div class="li" draggable="true"><select class="type"><option value="null" default="true">Choose type...</option><option value="type">Type string</option><option value="delay">Delay</option><option value="press">Press key</option><option value="screenshot">Screenshot</option><option value="click">Click</option><option value="move">Move mouse</option><option value="repeat">Repeat</option></select><button class="del">&times;</button></div>`
+            let addSel = `<div class="li" draggable="true"><select class="type"><option value="null" default="true">Choose type...</option><option value="type">Type string</option><option value="delay">Delay</option><option value="press">Press key</option><option value="screenshot">Screenshot</option><option value="click">Click</option><option value="move">Move mouse</option><option value="repeat">Repeat</option></select><button class="del">&#10060;</button></div>`
             $('.collection').append(addSel)
             $('.li select').on('change', (e) => {
               let val = $(e.currentTarget).val()
