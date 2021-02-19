@@ -114,7 +114,7 @@ app.get('/routines', async (req, res) => {
 })
 app.put('/routine', async (req, res) => {
   if (req.body && req.body['name'] && req.body['update']) {
-    r.hset('remote:routines', req.body['name'], req.body['update'])
+    r.hset('remote:routines', req.body['name'], JSON.stringify(req.body['update']))
     res.json({ 'ok': true })
   }
 })

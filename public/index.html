@@ -1,11 +1,19 @@
 <html>
   <head>
     <title>Remote Config</title>
+    <script src="jquery-3.5.1.min.js"></script>
     <style>
       @import url('https://fonts.googleapis.com/css2?family=Open+Sans&display=swap');
       body {
         background-color:#0c0127;
         font-family: 'Open Sans', sans-serif;
+        margin: 0;
+      }
+      h1 {
+        text-align: center;
+        color: white;
+        padding: 20px 0;
+        border-bottom: 1px solid #ffffff26;
       }
       .routine {
         display: inline-block;
@@ -26,11 +34,109 @@
         padding: 5px;
         text-align: center;
       }
-      h1 {
-        text-align: center;
+      .modal {
+        width: 23%;
+        max-width: 23%;
+        height: 60%;
+        background:black;
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        overflow-x: hidden;
+        transform: translate(-50%, -50%);
+        border-radius: 15px;
+        background: #14053a;
+        overflow-y: auto;
+      }
+      .buttons {
+        position: fixed;
+        right: 12px;
+        top: 12px;
+      }
+      .buttons button {
+        border: 0;
+        background: #14053a;
+        border-radius: 5px;
+        padding: 5px 9px;
         color: white;
-        padding: 20px 0;
-        border-bottom: 1px solid #ffffff26;
+        font-weight: bold;
+        cursor: pointer;
+      }
+      .modal h2 {
+        color: white;
+        text-align: center;
+      }
+      .modalBg {
+        width: 100%;
+        height: 100%;
+        background: #00000078;
+        position: fixed;
+        top:0;
+        left:0;
+      }
+      .collection {
+        margin-left: 15px;
+      }
+      .modal .li {
+        background: #0d0229;
+        color: white;
+        max-width: -webkit-fill-available;
+        width: fit-content;
+        border-radius: 6px;
+        padding: 5px;
+        margin: 5px;
+        cursor: pointer;
+        overflow-wrap: anywhere;
+      }
+      button.del {
+        background: 0;
+        border: 0;
+        color: #ff8383;
+        margin-left: 11px;
+        padding: 0px;
+        cursor: pointer;
+      }
+      button.plus {
+        font-weight: normal;
+      }
+      select {
+        border: 0;
+        background: #281161;
+        color: white;
+        border-radius: 5px;
+        padding: 5px;
+      }
+      input[type="text"] {
+        border: 0;
+        background: #281161;
+        color: white;
+        border-radius: 5px;
+        padding: 5px;
+        margin-left:5px
+      }
+      button.savestep {
+        border: 0;
+        background: #281161;
+        color: white;
+        border-radius: 5px;
+        padding: 5px 10px;
+        margin-left: 5px;
+        cursor: pointer;
+      }
+      button.savestep:hover {
+        background: #3f2484;
+      }
+      .screenshotinputs input {
+        width: 13%;
+      }
+      .screenshotinputs {
+        display: unset;
+      }
+      .moveinputs input {
+        width: 13%;
+      }
+      .moveinputs {
+        display: unset;
       }
     </style>
   </head>
@@ -40,21 +146,186 @@
     </div>
   </body>
   <script>
-    let template = `<div class="routine" routine-command="%command%" role="button" tabindex="0" aria-label="Edit routine: %command%"><p>%command%</p></div>`
-    
-    const http = new XMLHttpRequest()
-    http.open("GET", 'http://localhost:9898/routines')
-    http.send()
+    const setup = () => {
+      $('.routine').remove()
+      window.data = {}
 
-    http.onreadystatechange = function () {
-      if (this.readyState === 4 && this.status === 200) {
-        let res = JSON.parse(http.responseText)
-        Object.entries(res).forEach(pair => {
-          let temp = template.replace(/%command%/g, pair[0])
-          document.getElementsByClassName('routineList')[0].appendChild(document.createRange().createContextualFragment(temp))
-        })
+      let template = `<div class="routine" routine-command="%command%" role="button" tabindex="0" aria-label="Edit routine: %command%"><p>%command%</p></div>`
+
+      const http = new XMLHttpRequest()
+      http.open("GET", 'http://localhost:9898/routines')
+      http.send()
+
+      http.onreadystatechange = function () {
+        if (this.readyState === 4 && this.status === 200) {
+          let res = JSON.parse(http.responseText)
+          Object.entries(res).forEach(pair => {
+            let temp = template.replace(/%command%/g, pair[0])
+            $('.routineList').append(temp)
+
+            $(`[routine-command="${pair[0]}"]`).off('click').on('click', (e) => {
+              $('body').append(window.data[pair[0]].modal)
+              window.refocus = e.currentTarget
+              $('.x').focus()
+
+              $(document).off('dragover').on('dragover', '.li', e => {
+                event.preventDefault()
+                event.stopPropagation()
+                window.lastDragged = e.currentTarget
+              }).off('drag').on('drag', '.li', e => {
+                window.dragged = e.currentTarget
+              }).off('drop').on('drop', '.li', e => {
+                event.preventDefault()
+                event.stopPropagation()
+                var copy_to = $(window.dragged).clone(true)
+                var copy_from = $(window.lastDragged).clone(true)
+                $(window.lastDragged).replaceWith(copy_to)
+                $(window.dragged).replaceWith(copy_from)
+              })
+
+              $(document).off('click').on('click', '.del', e => {
+                $(e.target).closest('.li').remove()
+              }).off('keydown').on('keydown', (e) => {
+                if (e.keyCode === 13 || e.keyCode === 32) {
+                  e.preventDefault()
+                  e.currentTarget.click()
+                }
+              })
+
+              $('.save').off('click').on('click', (e) => {
+                let newAry = []
+                $('.collection .li').each((_, item) => {
+                  let i = $(item).clone()
+                  i.find('button').remove()
+                  newAry.push(i.text())
+                })
+                if (newAry.length > 0) {
+                  $.ajax({
+                    url: 'http://localhost:9898/routine',
+                    method: 'PUT',
+                    data: {
+                      name: $('.modal').attr('routine-name'),
+                      update: newAry
+                    },
+                    success: () => { alert('Saved successfully!') }
+                  })
+                }
+              }).off('keydown').on('keydown', (e) => {
+                if (e.keyCode === 13 || e.keyCode === 32) {
+                  e.preventDefault()
+                  e.currentTarget.click()
+                }
+              })
+
+              $('.x').off('click').on('click', e => {
+                $('.modalbg').remove()
+                $(window.refocus).focus()
+                setup()
+              }).off('keydown').on('keydown', (e) => {
+                if (e.keyCode === 13 || e.keyCode === 32) {
+                  e.preventDefault()
+                  e.currentTarget.click()
+                }
+              })
+
+              $('.plus').off('click').on('click', e => {
+                if ($('.li select')[0]) return
+                let addSel = `<div class="li" draggable="true"><select class="type"><option value="null" default="true">Choose type...</option><option value="type">Type string</option><option value="delay">Delay</option><option value="press">Press key</option><option value="screenshot">Screenshot</option><option value="click">Click</option><option value="move">Move mouse</option></select><button class="del">✖</button></div>`
+                $('.collection').append(addSel)
+                $('.li select').on('change', (e) => {
+                  let val = $(e.currentTarget).val()
+                  if (val === 'type') {
+                    let addition = `<input type="text" placeholder="Type a string here..." class="typeinput"><button class="savestep">Add</button>`
+                    $(e.currentTarget).closest('.li').children().not('.del, .type').remove()
+                    $(e.currentTarget).after(addition)
+                    $('button.savestep').on('click', e => {
+                      let input = $('.typeinput').val()
+                      if (!input || input.length < 1) return
+                      let saveString = `type:${input}`
+                      $(e.currentTarget).closest('.li').replaceWith(`<div class="li" draggable="true">${saveString}<button class="del">✖</button></div>`)
+                    }).off('keydown').on('keydown', (e) => {
+                      if (e.keyCode === 13 || e.keyCode === 32) {
+                        e.preventDefault()
+                        e.currentTarget.click()
+                      }
+                    })
+                  } else if (val === 'screenshot') {
+                    let addition = `<div class="screenshotinputs"><input type="text" placeholder="x" class="screenx"><input type="text" placeholder="y" class="screeny"><input type="text" placeholder="width" class="screenw"><input type="text" placeholder="height" class="screenh"><button class="savestep">Add</button></div>`
+                    $(e.currentTarget).closest('.li').children().not('.del, .type').remove()
+                    $(e.currentTarget).after(addition)
+                    $('button.savestep').on('click', e => {
+                      let input1 = $('.screenx').val()
+                      let input2 = $('.screeny').val()
+                      let input3 = $('.screenw').val()
+                      let input4 = $('.screenh').val()
+                      if (!input1 || input1.length < 1 || !input2 || input2.length < 1 || !input3 || input3.length < 1 || !input4 || input4.length < 1) return
+                      let saveString = `screenshot:${input1},${input2},${input3},${input4}`
+                      $(e.currentTarget).closest('.li').replaceWith(`<div class="li" draggable="true">${saveString}<button class="del">✖</button></div>`)
+                    }).off('keydown').on('keydown', (e) => {
+                      if (e.keyCode === 13 || e.keyCode === 32) {
+                        e.preventDefault()
+                        e.currentTarget.click()
+                      }
+                    })
+                  } else if (val === 'click') {
+                    let addition = `<select class="clicktype"><option value="left">Left</option><option value="right">Right</option></select><button class="savestep">Add</button>`
+                    $(e.currentTarget).closest('.li').children().not('.del, .type').remove()
+                    $(e.currentTarget).after(addition)
+                    $('button.savestep').on('click', e => {
+                      let input = $('.clicktype').val()
+                      let saveString = `click:${input}`
+                      $(e.currentTarget).closest('.li').replaceWith(`<div class="li" draggable="true">${saveString}<button class="del">✖</button></div>`)
+                    }).off('keydown').on('keydown', (e) => {
+                      if (e.keyCode === 13 || e.keyCode === 32) {
+                        e.preventDefault()
+                        e.currentTarget.click()
+                      }
+                    })
+                  } else if (val === 'move') {
+                    let addition = `<div class="moveinputs"><input type="text" placeholder="x" class="screenx"><input type="text" placeholder="y" class="screeny"><button class="savestep">Add</button></div>`
+                    $(e.currentTarget).closest('.li').children().not('.del, .type').remove()
+                    $(e.currentTarget).after(addition)
+                    $('button.savestep').on('click', e => {
+                      let input1 = $('.screenx').val()
+                      let input2 = $('.screeny').val()
+                      if (!input1 || input1.length < 1 || !input2 || input2.length < 1) return
+                      let saveString = `move:${input1},${input2}`
+                      $(e.currentTarget).closest('.li').replaceWith(`<div class="li" draggable="true">${saveString}<button class="del">✖</button></div>`)
+                    }).off('keydown').on('keydown', (e) => {
+                      if (e.keyCode === 13 || e.keyCode === 32) {
+                        e.preventDefault()
+                        e.currentTarget.click()
+                      }
+                    })
+                  } else if (val === 'null') {
+                    $(e.currentTarget).closest('.li').children().not('.del, .type').remove()
+                  }
+                })
+              }).off('keydown').on('keydown', (e) => {
+                if (e.keyCode === 13 || e.keyCode === 32) {
+                  e.preventDefault()
+                  e.currentTarget.click()
+                }
+              })
+            }).off('keydown').on('keydown', (e) => {
+              if (e.keyCode === 13 || e.keyCode === 32) {
+                e.preventDefault()
+                e.currentTarget.click()
+              }
+            })
+
+            let modal = `<div class="modalbg"><div class="modal" routine-name="${pair[0]}"><div class="buttons"><button class="plus" aria-label="Add Step">+</button><button class="x" aria-label="Close Routine Edit Modal">✖</button><button class="save" aria-label="Save Routine">Save</button></div><div class="modal__content"><h2>weathercheck</h2><div class="collection">%coll%</div></div></div></div>`
+            modal = modal.replace('%coll%', '<div class="li" draggable="true">' + JSON.parse(pair[1]).join('<button class="del">✖</button></div><div class="li" draggable="true">') + '<button class="del">✖</button></div>')
+
+            window.data[pair[0]] =  {
+              modal,
+              data: JSON.parse(pair[1])
+            }
+          })
+        }
       }
     }
 
+    setup()
   </script>
 </html>
