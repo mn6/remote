@@ -36,15 +36,25 @@ const click = button => {
   }, 50)
 }
 
+let counter = {}
 const processSteps = async (bot, msg, steps) => {
   for (let i = 0; i < steps.length; i++) {
-    if (i === steps.length - 1) bot.createMessage(msg.channel.id, 'Finished!')
+    let split = steps[i].split(':')
+    let type = split[0]
+    split.shift()
+    split = [ split.join(':') ]
+    let details = split[0] ? split[0].split(',') : null
+
     await new Promise(next => {
-      let split = steps[i].split(':')
-      let type = split[0]
-      let details = split[1].split(',')
-  
-      if (type === 'move') {
+      if (type === 'repeat') {
+        counter[type] ? counter[type]++ : counter[type] = 1
+        if (counter[type] < details[0]) {
+          processSteps(bot, msg, steps)
+        } else {
+          delete counter[type]
+          next()
+        }
+      } else if (type === 'move') {
         robot.moveMouse(details[0], details[1])
         next()
       } else if (type === 'delay') {
@@ -148,7 +158,7 @@ bot.on("messageCreate", async (msg) => {
       let command = split[1]
       let routines = await r.hgetall('remote:routines')
       if (routines[command]) {
-        bot.createMessage(msg.channel.id, 'Running macro: ' + command)
+        await bot.createMessage(msg.channel.id, 'Running macro: ' + command)
         processSteps(bot, msg, JSON.parse(routines[command]))
       }
     }

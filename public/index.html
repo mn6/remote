@@ -49,7 +49,7 @@
         overflow-y: auto;
       }
       .buttons {
-        position: fixed;
+        position: absolute;
         right: 12px;
         top: 12px;
       }
@@ -60,7 +60,10 @@
         padding: 5px 9px;
         color: white;
         font-weight: bold;
+        height: 26px;
+        line-height: 18px;
         cursor: pointer;
+        margin-left: 5px;
       }
       .modal h2 {
         color: white;
@@ -106,7 +109,7 @@
         border-radius: 5px;
         padding: 5px;
       }
-      input[type="text"] {
+      input[type="text"], input[type="number"] {
         border: 0;
         background: #281161;
         color: white;
@@ -126,17 +129,20 @@
       button.savestep:hover {
         background: #3f2484;
       }
-      .screenshotinputs input {
+      .moveinputs input, .screenshotinputs input {
         width: 13%;
       }
-      .screenshotinputs {
+      .repeatinputs, .screenshotinputs, .delayinputs, .moveinputs {
         display: unset;
       }
-      .moveinputs input {
-        width: 13%;
-      }
-      .moveinputs {
-        display: unset;
+      .header {
+        height: 76px;
+        top: 0;
+        left: 0;
+        width: 100%;
+        display: inline-block;
+        position: sticky;
+        background: #00000075;
       }
     </style>
   </head>
@@ -177,10 +183,10 @@
               }).off('drop').on('drop', '.li', e => {
                 event.preventDefault()
                 event.stopPropagation()
-                var copy_to = $(window.dragged).clone(true)
-                var copy_from = $(window.lastDragged).clone(true)
-                $(window.lastDragged).replaceWith(copy_to)
-                $(window.dragged).replaceWith(copy_from)
+                let idx1 =  $(e.currentTarget).closest('.collection').find('.li').index(window.dragged)
+                let idx2 = $(e.currentTarget).closest('.collection').find('.li').index(window.lastDragged)
+                if (idx2 > idx1) $(window.lastDragged).after(window.dragged)
+                else $(window.lastDragged).before(window.dragged)
               })
 
               $(document).off('click').on('click', '.del', e => {
@@ -230,7 +236,7 @@
 
               $('.plus').off('click').on('click', e => {
                 if ($('.li select')[0]) return
-                let addSel = `<div class="li" draggable="true"><select class="type"><option value="null" default="true">Choose type...</option><option value="type">Type string</option><option value="delay">Delay</option><option value="press">Press key</option><option value="screenshot">Screenshot</option><option value="click">Click</option><option value="move">Move mouse</option></select><button class="del">✖</button></div>`
+                let addSel = `<div class="li" draggable="true"><select class="type"><option value="null" default="true">Choose type...</option><option value="type">Type string</option><option value="delay">Delay</option><option value="press">Press key</option><option value="screenshot">Screenshot</option><option value="click">Click</option><option value="move">Move mouse</option><option value="repeat">Repeat</option></select><button class="del">✖</button></div>`
                 $('.collection').append(addSel)
                 $('.li select').on('change', (e) => {
                   let val = $(e.currentTarget).val()
@@ -297,6 +303,65 @@
                         e.currentTarget.click()
                       }
                     })
+                  } else if (val === 'delay') {
+                    let addition = `<div class="delayinputs"><input min="50" max="3600000" step="10" type="number" placeholder="Delay (ms)" class="delay"><button class="savestep">Add</button></div>`
+                    $(e.currentTarget).closest('.li').children().not('.del, .type').remove()
+                    $(e.currentTarget).after(addition)
+                    $('button.savestep').on('click', e => {
+                      let input = $('.delay').val()
+
+                      if (!input) return
+                      if (input < 50) input = 50
+                      if (input > 3600000) input = 3600000
+
+                      let saveString = `delay:${input}`
+                      $(e.currentTarget).closest('.li').replaceWith(`<div class="li" draggable="true">${saveString}<button class="del">✖</button></div>`)
+                    }).off('keydown').on('keydown', (e) => {
+                      if (e.keyCode === 13 || e.keyCode === 32) {
+                        e.preventDefault()
+                        e.currentTarget.click()
+                      }
+                    })
+                  } else if (val === 'repeat') {
+                    let addition = `<div class="repeatinputs"><input min="1" max="999" step="1" type="number" placeholder="Count" class="repeat"><button class="savestep">Add</button></div>`
+                    $(e.currentTarget).closest('.li').children().not('.del, .type').remove()
+                    $(e.currentTarget).after(addition)
+                    $('button.savestep').on('click', e => {
+                      let input = $('.repeat').val()
+
+                      if (!input) return
+                      if (input < 1) input = 1
+                      if (input > 999) input = 999
+
+                      let saveString = `repeat:${input}`
+                      if ($(e.currentTarget).closest('.collection').find(':contains(repeat)')[0]) return
+                      $(e.currentTarget).closest('.li').replaceWith(`<div class="li" draggable="true">${saveString}<button class="del">✖</button></div>`)
+                    }).off('keydown').on('keydown', (e) => {
+                      if (e.keyCode === 13 || e.keyCode === 32) {
+                        e.preventDefault()
+                        e.currentTarget.click()
+                      }
+                    })
+                  } else if (val === 'press') {
+                    let keys = ['backspace', 'delete', 'enter', 'tab', 'escape', 'up', 'down', 'right', 'left', 'home', 'end', 'pageup', 'pagedown', 'f1', 'f2', 'f3', 'f4', 'f5', 'f6', 'f7', 'f8', 'f9', 'f10', 'f11', 'f12', 'command', 'alt', 'control', 'shift', 'right_shift', 'space', 'printscreen', 'insert', 'audio_mute', 'audio_vol_down', 'audio_vol_up', 'audio_play', 'audio_stop', 'audio_pause', 'audio_prev', 'audio_next', 'audio_rewind', 'audio_forward', 'audio_repeat', 'audio_random', 'numpad_0', 'numpad_1', 'numpad_2', 'numpad_3', 'numpad_4', 'numpad_5', 'numpad_6', 'numpad_7', 'numpad_8', 'numpad_9', 'lights_mon_up', 'lights_mon_down', 'lights_kbd_toggle', 'lights_kbd_up', 'lights_kbd_down']
+                    let keysOptions = ''
+                    keys.forEach(key => {
+                      keysOptions += `<option value="${key}">${key}</option>`
+                    })
+                    let addition = `<select class="presskey">${keysOptions}</select><button class="savestep">Add</button>`
+
+                    $(e.currentTarget).closest('.li').children().not('.del, .type').remove()
+                    $(e.currentTarget).after(addition)
+                    $('button.savestep').on('click', e => {
+                      let input = $('.presskey').val()
+                      let saveString = `press:${input}`
+                      $(e.currentTarget).closest('.li').replaceWith(`<div class="li" draggable="true">${saveString}<button class="del">✖</button></div>`)
+                    }).off('keydown').on('keydown', (e) => {
+                      if (e.keyCode === 13 || e.keyCode === 32) {
+                        e.preventDefault()
+                        e.currentTarget.click()
+                      }
+                    })
                   } else if (val === 'null') {
                     $(e.currentTarget).closest('.li').children().not('.del, .type').remove()
                   }
@@ -314,7 +379,7 @@
               }
             })
 
-            let modal = `<div class="modalbg"><div class="modal" routine-name="${pair[0]}"><div class="buttons"><button class="plus" aria-label="Add Step">+</button><button class="x" aria-label="Close Routine Edit Modal">✖</button><button class="save" aria-label="Save Routine">Save</button></div><div class="modal__content"><h2>weathercheck</h2><div class="collection">%coll%</div></div></div></div>`
+            let modal = `<div class="modalbg"><div class="modal" routine-name="${pair[0]}"><div class="header"><h2>weathercheck</h2><div class="buttons"><button class="plus" aria-label="Add Step">+</button><button class="x" aria-label="Close Routine Edit Modal">✖</button><button class="save" aria-label="Save Routine">Save</button></div></div><div class="modal__content"><div class="collection">%coll%</div></div></div></div>`
             modal = modal.replace('%coll%', '<div class="li" draggable="true">' + JSON.parse(pair[1]).join('<button class="del">✖</button></div><div class="li" draggable="true">') + '<button class="del">✖</button></div>')
 
             window.data[pair[0]] =  {
