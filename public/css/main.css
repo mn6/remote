@@ -1,0 +1,143 @@
+@import url('https://fonts.googleapis.com/css2?family=Open+Sans&display=swap');
+body {
+  background-color:#0c0127;
+  font-family: 'Open Sans', sans-serif;
+  margin: 0;
+}
+h1 {
+  text-align: center;
+  color: white;
+  padding: 20px 0;
+  border-bottom: 1px solid #ffffff26;
+}
+.routine {
+  display: inline-block;
+  border-radius: 5px;
+  margin: 10px;
+  width: fit-content;
+  color: white;
+  padding: 5px 31px;
+  background-color: #1b0256;
+  cursor: pointer;
+  overflow-wrap: anywhere;
+}
+.routine:hover {
+  background-color: #20006b;
+}
+.routine p {
+  border-radius: 5px;
+  background-color: #12023a;
+  padding: 5px;
+  text-align: center;
+}
+.modal {
+  width: 45%;
+  max-width: 45%;
+  height: 60%;
+  background:black;
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  overflow-x: hidden;
+  transform: translate(-50%, -50%);
+  border-radius: 15px;
+  background: #14053a;
+  overflow-y: auto;
+}
+.buttons {
+  position: absolute;
+  right: 12px;
+  top: 12px;
+  display: flex;
+}
+.buttons button {
+  border: 0;
+  background: #14053a;
+  border-radius: 5px;
+  padding: 5px 9px;
+  color: white;
+  font-weight: bold;
+  height: 26px;
+  line-height: 18px;
+  cursor: pointer;
+  margin-left: 5px;
+}
+.modal h2 {
+  color: white;
+  text-align: center;
+}
+.modalBg {
+  width: 100%;
+  height: 100%;
+  background: #00000078;
+  position: fixed;
+  top:0;
+  left:0;
+}
+.collection {
+  margin-left: 15px;
+}
+.modal .li {
+  background: #0d0229;
+  color: white;
+  max-width: -webkit-fill-available;
+  width: fit-content;
+  border-radius: 6px;
+  padding: 5px;
+  margin: 5px;
+  cursor: pointer;
+  overflow-wrap: anywhere;
+}
+button.del {
+  background: 0;
+  border: 0;
+  color: #ff8383;
+  margin-left: 11px;
+  padding: 0px;
+  cursor: pointer;
+}
+select {
+  border: 0;
+  background: #281161;
+  color: white;
+  border-radius: 5px;
+  padding: 5px;
+}
+input[type="text"], input[type="number"] {
+  border: 0;
+  background: #281161;
+  color: white;
+  border-radius: 5px;
+  padding: 5px;
+  margin-left:5px
+}
+button.savestep {
+  border: 0;
+  background: #281161;
+  color: white;
+  border-radius: 5px;
+  padding: 5px 10px;
+  margin-left: 5px;
+  cursor: pointer;
+}
+button.savestep:hover {
+  background: #3f2484;
+}
+.moveinputs input, .screenshotinputs input {
+  width: 13%;
+}
+.repeatinputs, .screenshotinputs, .delayinputs, .moveinputs {
+  display: unset;
+}
+.header {
+  height: 76px;
+  top: 0;
+  left: 0;
+  width: 100%;
+  display: inline-block;
+  position: sticky;
+  background: #00000075;
+}
+.modal__content {
+  margin-top: 19px;
+}

@@ -15,7 +15,7 @@ const bodyParser = require('body-parser')
 const { promisify } = require("util")
 const redis = require("redis")
 const rclient = redis.createClient()
-const funcs = [ 'get', 'set', 'hget', 'hset', 'hgetall' ]
+const funcs = [ 'hset', 'hgetall', 'hdel' ]
 const r = {}
 funcs.forEach(func => {
   r[func] = promisify(rclient[func]).bind(rclient)
@@ -113,7 +113,7 @@ const processSteps = async (bot, msg, steps) => {
   }
 }
 
-// Internal express API for react front-end (saving/pulling routines)
+// Internal express API for front-end (saving/pulling/deleting routines)
 app.use(cors())
 app.use(bodyParser.json())
 app.use(bodyParser.urlencoded({ extended: true }))
@@ -131,6 +131,12 @@ app.put('/routine', async (req, res) => {
 app.post('/routine', async (req, res) => {
   if (req.body && req.body['name'] && req.body['routine']) {
     r.hset('remote:routines', req.body['name'], req.body['routine'])
+    res.json({ 'ok': true })
+  }
+})
+app.delete('/routine', async (req, res) => {
+  if (req.body && req.body['name']) {
+    r.hdel('remote:routines', req.body['name'])
     res.json({ 'ok': true })
   }
 })
