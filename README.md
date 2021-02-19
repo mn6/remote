@@ -31,3 +31,11 @@ Quick program I wrote to brush up on node/express/eris/react/robotjs. Has a web 
   <img src="https://i.imgur.com/XGiWD3S.png">
   <img src="https://i.imgur.com/NhEsAeV.png">
 </p>
+
+## Installation
+
+1. Pull this repository.
+2. Ensure you have the Windows build tools and node-gyp installed
+3. `npm i`
+4. `node index.js`
+5. View the dashboard @ `http://localhost:PORT/dashboard/`
