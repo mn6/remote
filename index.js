@@ -118,6 +118,7 @@ app.use(cors())
 app.use(bodyParser.json())
 app.use(bodyParser.urlencoded({ extended: true }))
 
+app.use('/dashboard', express.static('public'))
 app.get('/routines', async (req, res) => {
   let routines = await r.hgetall('remote:routines')
   res.json(routines)
